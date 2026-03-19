@@ -1,7 +1,15 @@
+# dependencies
 node_modules/
+frontend/node_modules/
+
+# env
 .env
-*.exe
+
+# logs
 *.log
+
+# OS files
 .DS_Store
-package.json
-package-lock.json
+
+# build
+dist/
