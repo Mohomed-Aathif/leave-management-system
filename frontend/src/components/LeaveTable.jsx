@@ -2,18 +2,27 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-export default function LeaveTable() {
+export default function LeaveTable({ role, user }) {
   const [leaves, setLeaves] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
 
   const loadLeaves = () => {
     axios.get("http://localhost:8080/leaves")
-      .then(res => setLeaves(res.data));
+      .then(res => {
+        if (role === "manager") {
+          setLeaves(res.data);
+        } else {
+          const filtered = res.data.filter(
+            l => l.employee_id === user.id
+          );
+          setLeaves(filtered);
+        }
+      });
   };
 
-  useEffect(() => {
-    loadLeaves();
-  }, []);
+    useEffect(() => {
+        loadLeaves();
+    }, [role, user]);
 
   const approve = (id) => {
     setLoadingId(id);
@@ -46,13 +55,12 @@ export default function LeaveTable() {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-sm text-center">
           
-          {/* ✅ FIXED THEAD */}
           <thead className="bg-gray-100">
             <tr>
-              <th>Employee</th>
-              <th>Dates</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th className="p-3">Employee</th>
+              <th className="p-3">Dates</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Action</th>
             </tr>
           </thead>
 
@@ -79,8 +87,9 @@ export default function LeaveTable() {
                       {l.status}
                     </span>
                   </td>
+
                   <td>
-                    {l.status === "pending" && (
+                    {role === "manager" && l.status === "pending" ? (
                       <div className="flex gap-2 justify-center">
                         <button
                           onClick={() => approve(l.id)}
@@ -98,8 +107,11 @@ export default function LeaveTable() {
                           {loadingId === l.id ? "..." : "Reject"}
                         </button>
                       </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">—</span>
                     )}
                   </td>
+
                 </tr>
               ))
             )}
