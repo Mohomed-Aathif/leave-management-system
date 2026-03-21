@@ -30,6 +30,7 @@ export default function Dashboard() {
         <Card title="Leaves" value={data.total_leaves} />
         <Card title="Pending" value={data.pending} />
         <Card title="Approved" value={data.approved} />
+        <Card title="Rejected" value={data.rejected} />
         </div>
     </div>
 );
