@@ -11,6 +11,8 @@ func RegisterRoutes() *mux.Router {
 
 	r.HandleFunc("/employees", handlers.CreateEmployee).Methods("POST")
 	r.HandleFunc("/employees", handlers.GetEmployees).Methods("GET")
+	r.HandleFunc("/employees/delete", handlers.DeleteEmployee).Methods("DELETE")
+	r.HandleFunc("/employees/update", handlers.UpdateEmployee).Methods("PUT")
 	r.HandleFunc("/leaves", handlers.CreateLeave).Methods("POST")
 	r.HandleFunc("/leaves", handlers.GetLeaves).Methods("GET")
 	r.HandleFunc("/leaves/approve", handlers.ApproveLeave).Methods("PUT")

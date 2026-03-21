@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 import Dashboard from "./components/Dashboard";
 import EmployeeList from "./components/EmployeeList";
 import LeaveTable from "./components/LeaveTable";
 import LeaveForm from "./components/LeaveForm";
+
 import { LayoutDashboard, Users, FileText, PlusCircle } from "lucide-react";
 
 function MenuItem({ icon, label, value, page, setPage }) {
@@ -24,48 +27,56 @@ function MenuItem({ icon, label, value, page, setPage }) {
 export default function App() {
   const [page, setPage] = useState("dashboard");
 
-  // ✅ Simulated logged-in user
-  const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    name: "John",
-    role: "employee"
-  });
+  const [employees, setEmployees] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Load employees globally
+  const loadEmployees = () => {
+    axios.get("http://localhost:8080/employees")
+      .then(res => {
+        setEmployees(res.data);
+        if (!currentUser) {
+          setCurrentUser(res.data[0]);
+        }
+      });
+  };
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
 
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
+      <div className="hidden md:flex w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
 
         <h1 className="text-xl font-bold mb-6 text-gray-800">
           Leave System
         </h1>
 
-        {/* ✅ User Selector (simulates login) */}
+        {/* Dynamic User Selector */}
         <select
+          value={currentUser?.id || ""}
           onChange={(e) => {
-            const users = [
-              { id: 1, name: "John", role: "employee" },
-              { id: 2, name: "Jane", role: "manager" },
-              { id: 3, name: "Smith", role: "employee" }
-            ];
-
-            const selected = users.find(
-              u => u.id === Number(e.target.value)
+            const selected = employees.find(
+              emp => emp.id === Number(e.target.value)
             );
             setCurrentUser(selected);
           }}
           className="border p-2 rounded mb-6"
         >
-          <option value={1}>John (Employee)</option>
-          <option value={2}>Jane (Manager)</option>
-          <option value={3}>Smith (Employee)</option>
+          {employees.map(emp => (
+            <option key={emp.id} value={emp.id}>
+              {emp.name} ({emp.role})
+            </option>
+          ))}
         </select>
 
         {/* Navigation */}
         <div className="flex-1">
 
-          {currentUser.role === "manager" && (
+          {currentUser?.role === "manager" && (
             <MenuItem
               icon={<LayoutDashboard size={18} />}
               label="Dashboard"
@@ -75,7 +86,7 @@ export default function App() {
             />
           )}
 
-          {currentUser.role === "manager" && (
+          {currentUser?.role === "manager" && (
             <MenuItem
               icon={<Users size={18} />}
               label="Employees"
@@ -93,7 +104,7 @@ export default function App() {
             setPage={setPage}
           />
 
-          {currentUser.role === "employee" && (
+          {currentUser?.role === "employee" && (
             <MenuItem
               icon={<PlusCircle size={18} />}
               label="Apply Leave"
@@ -107,21 +118,24 @@ export default function App() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-3 md:p-6 overflow-y-auto">
 
-        {page === "dashboard" && currentUser.role === "manager" && (
+        {page === "dashboard" && currentUser?.role === "manager" && (
           <Dashboard />
         )}
 
-        {page === "employees" && currentUser.role === "manager" && (
-          <EmployeeList />
+        {page === "employees" && currentUser?.role === "manager" && (
+          <EmployeeList
+            employees={employees}
+            loadEmployees={loadEmployees}
+          />
         )}
 
-        {page === "leaves" && (
+        {page === "leaves" && currentUser && (
           <LeaveTable role={currentUser.role} user={currentUser} />
         )}
 
-        {page === "apply" && currentUser.role === "employee" && (
+        {page === "apply" && currentUser?.role === "employee" && (
           <LeaveForm user={currentUser} role={currentUser.role} />
         )}
 
